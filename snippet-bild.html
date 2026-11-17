@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="sv-SE" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kod Snippet Bild Studio</title>
+<link rel="stylesheet" href="prism.css">
+<script src="html2canvas.js"></script>
+<style>
+:root {
+--bg-dark: #0f172a;
+--card-bg: #1e293b;
+--accent: #3b82f6;
+--text: #f1f5f9;
+}
+* { box-sizing: border-box; overflow-wrap: break-word; hyphens: auto; }
+*::before, *::after { box-sizing: inherit; }
+body { background-color: var(--bg-dark); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
+.container { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 20px; }
+.controls {
+background: var(--card-bg);
+padding: 25px;
+border-radius: 4px;
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+gap: 20px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+width: 100%;
+}
+.control-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
+select, textarea, input, button {
+background: #0f172a;
+border: 1px solid #334155;
+color: white;
+padding: 12px;
+border-radius: 8px;
+outline: none;
+width: 100%;
+}
+textarea { 
+grid-column: 1 / -1; 
+min-height: 180px; 
+font-family: 'Fira Code', monospace;
+border-color: var(--accent);
+}
+.full-width { grid-column: 1 / -1; }
+.btn-group { 
+grid-column: 1 / -1; 
+display: grid; 
+grid-template-columns: 1fr 1fr; 
+gap: 15px; 
+}
+button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+button.secondary { background: #475569; }
+.preview-outer {
+width: 100%;
+background: transparent;
+border-radius: 12px;
+padding: 40px 20px;
+overflow-x: auto;
+display: flex;
+justify-content: center;
+}
+#capture-area {
+display: inline-block;
+background-size: cover;
+background-position: center;
+border-radius: 4px;
+min-width: fit-content;
+}
+pre#code-container {
+margin: 0 !important;
+border-radius: 12px !important;
+box-shadow: 0 30px 80px rgba(0,0,0,0.6) !important;
+backdrop-filter: blur(10px);
+overflow: visible !important;
+border: none !important;
+}
+code#code-overlay {
+font-family: 'Fira Code', monospace !important;
+text-shadow: none !important;
+line-height: 1.6 !important;
+letter-spacing: 0px !important;
+white-space: pre !important; 
+display: block !important;
+}
+@media (max-width: 600px) {
+.btn-group { grid-template-columns: 1fr; }
+#capture-area { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="controls">
+<div class="control-group">
+<label>Språk (Prism)</label>
+<select id="langSelect">
+<option value="javascript">JavaScript</option>
+<option value="css">CSS</option>
+<option value="html">HTML</option>
+<option value="python">Python</option>
+<option value="sql">SQL</option>
+<option value="php">PHP</option>
+<option value="csharp">C#</option>
+<option value="java">Java</option>
+<option value="json">JSON</option>
+<option value="markdown">Markdown</option>
+</select>
+</div>
+<div class="control-group">
+<label>Bakgrundstema</label>
+<select id="themeSelect">
+<option value="linear-gradient(135deg, #0f172a 0%, #334155 100%)">Slate Night</option>
+<option value="linear-gradient(135deg, #6366f1 0%, #a855f7 100%)">Indigo Dream</option>
+<option value="linear-gradient(45deg, #f43f5e, #fb923c)">Sunset Flame</option>
+<option value="linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)">Oceanic Blue</option>
+<option value="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)">Emerald City</option>
+<option value="linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%)">Deep Purple</option>
+<option value="linear-gradient(135deg, #ff9966 0%, #ff5e62 100%)">Mango Pulse</option>
+<option value="linear-gradient(135deg, #434343 0%, #000000 100%)">Midnight Dark</option>
+</select>
+</div>
+<div class="control-group">
+<label>Overlay Färg</label>
+<select id="overlaySelect">
+<option value="rgba(0,0,0,0.85)">Deep Black</option>
+<option value="rgba(30,41,59,0.8)">Slate Glass</option>
+<option value="rgba(255,255,255,0.1)">Frosted White</option>
+<option value="rgba(88, 28, 135, 0.65)">Purple Haze</option>
+<option value="rgba(20, 83, 45, 0.7)">Forest Tint</option>
+<option value="rgba(127, 29, 29, 0.7)">Ruby Glow</option>
+<option value="rgba(15, 23, 42, 0.95)">Solid Slate</option>
+<option value="rgba(0, 0, 0, 0.5)">Soft Shadow</option>
+<option value="#1a1a1a">Matte Grey</option>
+<option value="transparent">Ingen Overlay</option>
+</select>
+</div>
+<div class="control-group">
+<label>Textstorlek (px)</label>
+<input type="number" id="fontSizeInput" value="16" min="10" max="60">
+</div>
+<div class="control-group">
+<label>Inre Padding (px)</label>
+<input type="number" id="paddingInput" value="30" min="0" max="150">
+</div>
+<div class="control-group">
+<label>Yttre Marginal (px)</label>
+<input type="number" id="marginInput" value="50" min="10" max="200">
+</div>
+<textarea id="codeInput" spellcheck="false" placeholder="Klistra in din kod här...">function greet() {
+console.log("Kod Snippet Bild Generator (BETA)!");
+return true;
+}</textarea>
+<div class="control-group full-width">
+<label>Filnamn (utan ändelse)</label>
+<input type="text" id="fileNameInput" placeholder="Namnge din bild">
+</div>
+<div class="btn-group">
+<button onclick="download('png')">Spara PNG</button>
+<button onclick="download('jpg')" class="secondary">Spara JPG</button>
+</div>
+</div>
+<div class="preview-outer">
+<div id="capture-area">
+<pre id="code-container"><code id="code-overlay" class="language-javascript"></code></pre>
+</div>
+</div>
+</div>
+<script src="prism.js"></script>
+<script>
+const themeSelect = document.getElementById('themeSelect');
+const overlaySelect = document.getElementById('overlaySelect');
+const langSelect = document.getElementById('langSelect');
+const fontSizeInput = document.getElementById('fontSizeInput');
+const paddingInput = document.getElementById('paddingInput');
+const marginInput = document.getElementById('marginInput');
+const codeInput = document.getElementById('codeInput');
+const fileNameInput = document.getElementById('fileNameInput');
+const captureArea = document.getElementById('capture-area');
+const codeContainer = document.getElementById('code-container');
+const codeOverlay = document.getElementById('code-overlay');
+function updatePreview() {
+captureArea.style.background = themeSelect.value;
+if(themeSelect.value.includes('url')) {
+captureArea.style.backgroundSize = 'cover';
+}
+captureArea.style.padding = marginInput.value + 'px';
+codeContainer.style.backgroundColor = overlaySelect.value;
+codeContainer.style.padding = paddingInput.value + 'px';
+codeOverlay.className = `language-${langSelect.value}`;
+codeOverlay.style.fontSize = fontSizeInput.value + 'px';
+codeOverlay.textContent = codeInput.value || "// Ingen kod angiven";
+Prism.highlightElement(codeOverlay);
+}
+[themeSelect, overlaySelect, langSelect, fontSizeInput, paddingInput, marginInput, codeInput].forEach(el => {
+el.addEventListener('input', updatePreview);
+});
+updatePreview();
+function download(format) {
+const fileName = fileNameInput.value.trim() || `snippet-${Date.now()}`;
+html2canvas(captureArea, {
+useCORS: true,
+scale: 3,
+backgroundColor: null,
+logging: false,
+onclone: (clonedDoc) => {
+const clonedPre = clonedDoc.getElementById('code-container');
+const clonedCode = clonedDoc.getElementById('code-overlay');
+clonedPre.style.overflow = 'visible';
+clonedCode.style.whiteSpace = 'pre';
+}}).then(canvas => {
+const link = document.createElement('a');
+link.download = `${fileName}.${format}`;
+link.href = canvas.toDataURL(format === 'png' ? 'image/png' : 'image/jpeg', 1.0);
+link.click();
+});
+}
+</script>
+</body>
+</html>
